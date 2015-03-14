@@ -5,6 +5,10 @@ class Array
 		self.all? {|elem| elem.to_s.empty?}
 	end
 
+	def all_same?
+  		self.all? { |element| element == self[0] }
+	end
+
 	def any_empty?
 		self.any? { |elem| elem.to_s.empty? }
 	end
