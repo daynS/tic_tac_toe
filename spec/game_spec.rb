@@ -56,6 +56,7 @@ module TicTacToe
 				game = Game.new([bob, frank])
 				expect(game.get_move("7")).to eq [0,2]
 			end
+
 		end
 
 		context "#game_over_message" do

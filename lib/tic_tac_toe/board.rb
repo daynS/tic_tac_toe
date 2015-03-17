@@ -26,6 +26,10 @@ module TicTacToe
 			end
 		end
 
+		def current_board
+			#TODO Return something that shows the current board's value(x or o) and position (1-9)
+		end
+
 		private
 
 		def default_grid
