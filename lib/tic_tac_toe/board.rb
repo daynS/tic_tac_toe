@@ -2,7 +2,7 @@
 module TicTacToe
 	class Board
 		attr_reader :grid
-		def initialize(input = {}) #hash input
+		def initialize(input = {})
 			@grid = input.fetch(:grid, default_grid)
 		end
 
@@ -26,10 +26,17 @@ module TicTacToe
 			end
 		end
 
-		def current_board
-			#TODO Return something that shows the current board's value(x or o) and position (1-9)
+		def diagonals
+			[
+				[get_cell(0,0), get_cell(1,1), get_cell(2,2),],
+				[get_cell(0,2), get_cell(1,1), get_cell(2,0),]
+			]
 		end
 
+
+		###
+		# 	PRIVATE METHODS!!!! 
+		###
 		private
 
 		def default_grid
@@ -46,12 +53,7 @@ module TicTacToe
 			diagonals #two diagonals
 		end
 
-		def diagonals
-			[
-				[get_cell(0,0), get_cell(1,1), get_cell(2,2),],
-				[get_cell(0,2), get_cell(1,1), get_cell(2,0),]
-			]
-		end
+
 
 		def winner?
 			winning_positions.each  do |winning_position|

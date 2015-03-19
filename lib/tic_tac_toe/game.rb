@@ -4,7 +4,7 @@ module TicTacToe
 	class Game
 		attr_reader :players, :board, :current_player, :other_player, :turn_number
 
-		def initialize(players,board = Board.new)
+		def initialize(players, board = Board.new)
 			@players = players
 			@board = board
 			@current_player, @other_player = players.shuffle
@@ -40,27 +40,275 @@ module TicTacToe
 		def get_move_computer
 			if @turn_number == 1
 				increment_turn_number
-				return human_move_to_coordinate("1")
+				random_corner = [1,3,7,9]
+				return human_move_to_coordinate(random_corner.sample.to_s)
+
+			elsif @turn_number == 3 && board.get_cell(1,1).value.empty?
+					return human_move_to_coordinate("5")
 			else
-				valid_moves = find_valid_moves
-				move = computer_strategy(valid_moves)
 				increment_turn_number
-				return human_move_to_coordinate(move.to_s) #Program errors if I pass an int to coordininate.
-															#is it because int.to_i causes error? 
+				move = computer_strategy
+				if move.is_a? Array
+					return move
+				else
+					return human_move_to_coordinate(move.to_s)
+				end
+															#Program errors if I pass an int to coordininate.
+															#is it because int.to_i causes error?
 			end
 		end
 
-		def computer_strategy(valid_moves)
-			current_board = board.current_board
-			return 9
+		def computer_strategy
+			x_cells = find_Xs
+			puts "X cells #{x_cells}"
+			o_cells = find_Os
+			puts "O cells #{o_cells}"
+			valid_moves = find_valid_moves
+			puts "valid moves #{valid_moves}"
 
-			#TODO add strategy
+			puts "columninfo: #{current_board_columns}"
+
+			if winning_move(current_board_rows, current_board_columns, current_board_diagonals) != 0
+				puts "win move: #{winning_move(current_board_rows, current_board_columns, current_board_diagonals)}"
+				return winning_move(current_board_rows, current_board_columns, current_board_diagonals)
+			end
+
+			if defensive_move(current_board_rows, current_board_columns, current_board_diagonals) != 0
+				return defensive_move(current_board_rows, current_board_columns, current_board_diagonals)
+			end
+
+			return valid_moves.sample
+		end
+
+
+		#return the x,y coordinate for winning move
+		def winning_move(rows, columns, diagonals)
+			row_number = 0
+			rows.each do |row|
+				counter = 0
+				if row.include? ""
+					row.each do |cell|
+						if cell == "O"
+							counter += 1
+						end
+					end
+					if counter == 2
+						return [row.index(""), row_number]
+					end
+				end
+				row_number += 1
+			end
+
+			column_number = 0
+			columns.each do |column|
+				counter = 0
+				if column.include? ""
+					column.each do |cell|
+						if cell == "O"
+							counter += 1
+						end
+					end
+					if counter == 2
+						return [column_number, column.index("")]
+					end
+				end
+				column_number += 1
+			end
+
+			diagonal_number = 0 #1,5,9 is 0; 753 is 1
+			diagonals.each do |diagonal|
+				counter = 0
+				if diagonal.include? ""
+					diagonal.each do |cell|
+						if cell == "O"
+							counter += 1
+						end
+					end
+					if counter == 2
+						winning_move = [diagonal_number, diagonal.index("")]
+						return check_diagonal(winning_move)
+					end
+				end
+				diagonal_number += 1
+			end
+
+
+			return 0
+		end
+
+		#translates the position in the diagonals array to an actual cell location
+		def check_diagonal(winning_move)
+			case winning_move
+			when [0,0]
+				return [0,0]
+			when [0,1], [1,1]
+				return [1,1]
+			when [0,2]
+				return [2,2]
+			when [1,0]
+				return [0,2]
+			when [1,2]
+				return [2,0]
+			end
+		end
+
+
+		def defensive_move(rows, columns, diagonals)
+			row_number = 0
+			rows.each do |row|
+				counter = 0
+				if row.include? ""
+					row.each do |cell|
+						if cell == "X"
+							counter += 1
+						end
+					end
+					if counter == 2
+						return [row.index(""), row_number]
+					end
+				end
+				row_number += 1
+			end
+
+			column_number = 0
+			columns.each do |column|
+				counter = 0
+				if column.include? ""
+					column.each do |cell|
+						if cell == "X"
+							counter += 1
+						end
+					end
+					if counter == 2
+						return [column_number, column.index("")]
+					end
+				end
+				column_number += 1
+			end
+
+			diagonal_number = 0 #1,5,9 is 0; 753 is 1
+			diagonals.each do |diagonal|
+				counter = 0
+				if diagonal.include? ""
+					diagonal.each do |cell|
+						if cell == "X"
+							counter += 1
+						end
+					end
+					if counter == 2
+						winning_move = [diagonal_number, diagonal.index("")]
+						return check_diagonal(winning_move)
+					end
+				end
+				diagonal_number += 1
+			end
+
+			return 0
+		end
+
+
+		def current_board_diagonals
+			diag_one_cells = [1,5,9]
+			diag_two_cells = [7,5,3]
+
+			diag_one = []
+			diag_one_cells.each do |cell|
+				x, y = human_move_to_coordinate(cell.to_s)
+				if board.get_cell(x,y).value.empty?
+					diag_one.push("")
+				else
+					diag_one.push(board.get_cell(x,y).value)
+				end
+			end
+			
+			diag_two = []
+			diag_two_cells.each do |cell|
+				x, y = human_move_to_coordinate(cell.to_s)
+				if board.get_cell(x,y).value.empty?
+					diag_two.push("")
+				else
+					diag_two.push(board.get_cell(x,y).value)
+				end
+			end
+
+			return diagonals = [diag_one, diag_two]
+		end
+ 
+
+		def current_board_rows
+			cell_number = 1
+
+			row_one = []
+			until cell_number == 4
+				x, y = human_move_to_coordinate(cell_number.to_s)
+				if board.get_cell(x,y).value.empty?
+					row_one.push("")
+				else
+					row_one.push(board.get_cell(x,y).value)
+				end
+				cell_number += 1
+			end
+
+			row_two = []
+			until cell_number >= 7
+				x, y = human_move_to_coordinate(cell_number.to_s)
+				if board.get_cell(x,y).value.empty?
+					row_two.push("")
+				else
+					row_two.push(board.get_cell(x,y).value)
+				end
+				cell_number += 1
+			end
+
+			row_three = []
+			until cell_number >= 10
+				x, y = human_move_to_coordinate(cell_number.to_s)
+				if board.get_cell(x,y).value.empty?
+					row_three.push("")
+				else
+					row_three.push(board.get_cell(x,y).value)
+				end
+				cell_number += 1
+			end
+
+			rows = [row_one, row_two, row_three]
+			return rows
+		end
+
+		def current_board_columns
+			current_board_rows.transpose
+		end
+
+		def find_Xs
+			cell_number = 1
+			x_cells = []
+			until cell_number >= 9
+				x, y = human_move_to_coordinate(cell_number.to_s)
+				if board.get_cell(x,y).value == "X"
+					x_cells.push(cell_number)
+				end
+				cell_number += 1
+			end
+			return x_cells
+		end
+
+		def find_Os
+			cell_number = 1
+			o_cells = []
+			until cell_number >= 9
+				x, y = human_move_to_coordinate(cell_number.to_s)
+				if board.get_cell(x,y).value == "O"
+					o_cells.push(cell_number)
+				end
+				cell_number += 1
+			end
+			return o_cells
 		end
 
 		def find_valid_moves
 			cell_number = 1
 			valid_moves = []
-				until cell_number >= 9
+				until cell_number >= 10
 					if valid_move?(cell_number.to_s)
 						valid_moves.push(cell_number)
 					end
